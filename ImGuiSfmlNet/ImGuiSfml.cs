@@ -2,10 +2,16 @@
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
-using OpenTK.Graphics.OpenGL;
 using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using OpenTK;
+using OpenTK.Graphics.OpenGL;
+
+/*
+BBQGiraffe is cool
+*/
+
 
 namespace ImGuiSfmlNet
 {
@@ -37,8 +43,8 @@ namespace ImGuiSfmlNet
 
         private static StickInfo s_dPadInfo;
         private static StickInfo s_lStickInfo;
-
-        private static Cursor[] s_mouseCursors = new Cursor[(int)ImGuiMouseCursor.COUNT];
+        
+        private static MouseCursor[] s_mouseCursors = new MouseCursor[(int)ImGuiMouseCursor.COUNT];
         private static bool[] s_mouseCursorLoaded = new bool[(int)ImGuiMouseCursor.COUNT];
 
         public static void Init(RenderWindow window, bool loadDefaultFont = true)
@@ -74,9 +80,9 @@ namespace ImGuiSfmlNet
                 io.KeyMap[(int)ImGuiKey.End] = (int)Keyboard.Key.End;
                 io.KeyMap[(int)ImGuiKey.Insert] = (int)Keyboard.Key.Insert;
                 io.KeyMap[(int)ImGuiKey.Delete] = (int)Keyboard.Key.Delete;
-                io.KeyMap[(int)ImGuiKey.Backspace] = (int)Keyboard.Key.Backspace;
+                io.KeyMap[(int)ImGuiKey.Backspace] = (int)Keyboard.Key.BackSpace;
                 io.KeyMap[(int)ImGuiKey.Space] = (int)Keyboard.Key.Space;
-                io.KeyMap[(int)ImGuiKey.Enter] = (int)Keyboard.Key.Enter;
+                io.KeyMap[(int)ImGuiKey.Enter] = (int)Keyboard.Key.Return;
                 io.KeyMap[(int)ImGuiKey.Escape] = (int)Keyboard.Key.Escape;
                 io.KeyMap[(int)ImGuiKey.A] = (int)Keyboard.Key.A;
                 io.KeyMap[(int)ImGuiKey.C] = (int)Keyboard.Key.C;
@@ -108,14 +114,14 @@ namespace ImGuiSfmlNet
                 s_mouseCursorLoaded[i] = false;
             }
 
-            LoadMouseCursor(ImGuiMouseCursor.Arrow, Cursor.CursorType.Arrow);
-            LoadMouseCursor(ImGuiMouseCursor.TextInput, Cursor.CursorType.Text);
-            LoadMouseCursor(ImGuiMouseCursor.ResizeAll, Cursor.CursorType.SizeAll);
-            LoadMouseCursor(ImGuiMouseCursor.ResizeNS, Cursor.CursorType.SizeVertical);
-            LoadMouseCursor(ImGuiMouseCursor.ResizeEW, Cursor.CursorType.SizeHorinzontal);
-            LoadMouseCursor(ImGuiMouseCursor.ResizeNESW, Cursor.CursorType.SizeBottomLeftTopRight);
-            LoadMouseCursor(ImGuiMouseCursor.ResizeNWSE, Cursor.CursorType.SizeTopLeftBottomRight);
-            LoadMouseCursor(ImGuiMouseCursor.Hand, Cursor.CursorType.Hand);
+            LoadMouseCursor(ImGuiMouseCursor.Arrow, ImGuiMouseCursor.Arrow);
+            LoadMouseCursor(ImGuiMouseCursor.TextInput, ImGuiMouseCursor.TextInput);
+            LoadMouseCursor(ImGuiMouseCursor.ResizeAll, ImGuiMouseCursor.ResizeAll);
+            LoadMouseCursor(ImGuiMouseCursor.ResizeNS, ImGuiMouseCursor.ResizeNS);
+            LoadMouseCursor(ImGuiMouseCursor.ResizeEW, ImGuiMouseCursor.ResizeEW);
+            LoadMouseCursor(ImGuiMouseCursor.ResizeNESW, ImGuiMouseCursor.ResizeNESW);
+            LoadMouseCursor(ImGuiMouseCursor.ResizeNWSE, ImGuiMouseCursor.ResizeNWSE);
+            LoadMouseCursor(ImGuiMouseCursor.Hand, ImGuiMouseCursor.Hand);
 
             if (s_fontTexture != null)
                 s_fontTexture = null;
@@ -379,16 +385,16 @@ namespace ImGuiSfmlNet
             s_lStickInfo.yInverted = inverted;
         }
 
-        private static Vector2 GetTopLeftAbsolute(FloatRect rect)
+        private static System.Numerics.Vector2 GetTopLeftAbsolute(FloatRect rect)
         {
-            Vector2 pos = ImGui.GetCursorScreenPos();
-            return new Vector2(rect.Left + pos.X, rect.Top + pos.Y);
+            System.Numerics.Vector2 pos = ImGui.GetCursorScreenPos();
+            return new System.Numerics.Vector2(rect.Left + pos.X, rect.Top + pos.Y);
         }
 
-        private static Vector2 GetDownRightAbsolute(FloatRect rect)
+        private static System.Numerics.Vector2 GetDownRightAbsolute(FloatRect rect)
         {
-            Vector2 pos = ImGui.GetCursorScreenPos();
-            return new Vector2(rect.Left + rect.Width + pos.X, rect.Top + rect.Height + pos.Y);
+            System.Numerics.Vector2 pos = ImGui.GetCursorScreenPos();
+            return new System.Numerics.Vector2(rect.Left + rect.Width + pos.X, rect.Top + rect.Height + pos.Y);
         }
 
         private static IntPtr ConvertGLTextureHandleToImTextureID(uint glTextureHandle)
@@ -455,10 +461,16 @@ namespace ImGuiSfmlNet
             //*/
 
             //*
-            GL.PushAttrib(AttribMask.EnableBit | AttribMask.ColorBufferBit | AttribMask.TransformBit);
 
+
+            GL.PushAttrib(AttribMask.EnableBit | AttribMask.ColorBufferBit | AttribMask.TransformBit);
+            
             GL.Enable(EnableCap.Blend);
-            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+
+
+            //honestly don't know what this did but removing it doesn't change anything ¯\_(ツ)_/¯
+            //GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+
             GL.Disable(EnableCap.CullFace);
             GL.Disable(EnableCap.DepthTest);
             GL.Enable(EnableCap.ScissorTest);
@@ -583,19 +595,19 @@ namespace ImGuiSfmlNet
         private static SetClipboardTextDelegate setClipboardTextDelegate;
         unsafe private static void SetClipboardText(void* userData, string text)
         {
-            Clipboard.Contents = text;
+            ImGui.SetClipboardText(text);
+            
         }
 
         private unsafe delegate string GetClipboardTextDelegate(void* userData);
         private static GetClipboardTextDelegate getClipboardTextDelegate;
         unsafe private static string GetClipboardText(void* userData)
         {
-            return Clipboard.Contents;
+            return ImGui.GetClipboardText();
         }
 
-        private static void LoadMouseCursor(ImGuiMouseCursor imguiCursorType, Cursor.CursorType sfmlCursorType)
+        private static void LoadMouseCursor(ImGuiMouseCursor imguiCursorType, ImGuiMouseCursor sfmlCursorType)
         {
-            s_mouseCursors[(int)imguiCursorType] = new Cursor(sfmlCursorType);
             s_mouseCursorLoaded[(int)imguiCursorType] = true;
         }
 
@@ -611,8 +623,8 @@ namespace ImGuiSfmlNet
                 {
                     window.SetMouseCursorVisible(true);
 
-                    Cursor c = s_mouseCursorLoaded[(int)cursor] ? s_mouseCursors[(int)cursor] : s_mouseCursors[(int)ImGuiMouseCursor.Arrow];
-                    window.SetMouseCursor(c);
+                    //Cursor c = s_mouseCursorLoaded[(int)cursor] ? s_mouseCursors[(int)cursor] : s_mouseCursors[(int)ImGuiMouseCursor.Arrow];
+                    //window.SetMouseCursor(c);
                 }
             }
         }

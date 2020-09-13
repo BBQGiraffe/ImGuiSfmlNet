@@ -3,6 +3,8 @@ using ImGuiSfmlNet;
 using SFML.Graphics;
 using SFML.System;
 using System;
+using OpenTK.Graphics;
+using SFML.Window;
 
 namespace ImGuiSfmlTest
 {
@@ -10,10 +12,17 @@ namespace ImGuiSfmlTest
     {
         static void Main(string[] args)
         {
-            // NOTE : This is workaround to create a functioning opengl context for OpenTK (for current OpenTK version)
-            var gameWindow = new OpenTK.GameWindow();
+            ContextSettings contextSettings = new ContextSettings(24, 0, 0);
+            var window = new RenderWindow(new SFML.Window.VideoMode(640, 480), "ImGui + SFML + .Net = <3",Styles.Default ,contextSettings);
 
-            var window = new RenderWindow(new SFML.Window.VideoMode(640, 480), "ImGui + SFML + .Net = <3");
+            OpenTK.Graphics.GraphicsMode graphicsMode = new OpenTK.Graphics.GraphicsMode(32, (int)contextSettings.DepthBits, (int)contextSettings.StencilBits, (int)contextSettings.AntialiasingLevel);
+            OpenTK.Platform.IWindowInfo windowInfo = OpenTK.Platform.Utilities.CreateWindowsWindowInfo(window.SystemHandle);
+            
+            OpenTK.Graphics.GraphicsContext context = new OpenTK.Graphics.GraphicsContext(graphicsMode, windowInfo);
+            context.MakeCurrent(windowInfo);
+            context.LoadAll();
+
+
             window.SetFramerateLimit(60);
             ImGuiSfml.Init(window);
 
